@@ -29,10 +29,10 @@ class Data(object):
 		#TODO: This function should return the training images and labels. You can use the helper functions for this.
 		data = {}
 		for i in range(5):
-			d = _get_next_batch_from_file(i)
+			d = self._get_next_batch_from_file(i)
 			data.update(d)
-		images, labels = preprocess(d)
-		images = convert_images(images)
+		images, labels = self.preprocess(d)
+		images = self.convert_images(images)
 		return images, labels
 
 	def convert_images(self, raw_images):
@@ -56,8 +56,8 @@ class Data(object):
 
 	def get_test_data(self):
 		d = self._unpickle_data(self.data_dir + 'test_batch')
-		images, labels = preprocess(d)
-		images = convert_images(images)
+		images, labels = self.preprocess(d)
+		images = self.convert_images(images)
 		return images, labels
 
 	def preprocess(self, images):
