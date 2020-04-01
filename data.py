@@ -31,7 +31,7 @@ class Data(object):
 		for i in range(1, 6):
 			d = self._get_next_batch_from_file(i)
 			data.update(d)
-		images, labels = self.preprocess(d)
+		images, labels = self.preprocess(data)
 		images = self.convert_images(images)
 		return images, labels
 
@@ -65,12 +65,13 @@ class Data(object):
 		#The output should be a tuple of your images and labels
 		images = []
 		labels = []
-		for k in data["data"]:
+		print(data.keys())
+		for k in data[b'data']:
 			images.append(k)
 			images.append(np.rot90(k))
 			images.append(np.rot90(np.rot90(k)))
 			images.append(np.rot90(np.rot90(np.rot90(k))))
-		for v in data["labels"]:
+		for v in data[b'labels']:
 			for i in range(4):
 				labels.append(v)
 		return images, labels
@@ -87,7 +88,7 @@ class Data(object):
 	def get_image(image_path):
 		#TODO: Load a single image for inference given the path to the data
 		#This is not required but can be used in your predict method in rotnet.py
-		...
+		#...
 		return
 
 if __name__ == "__main__":
