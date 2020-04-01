@@ -28,7 +28,7 @@ class Data(object):
 		print("[INFO] Getting Training Data")
 		#TODO: This function should return the training images and labels. You can use the helper functions for this.
 		data = {}
-		for i in range(5):
+		for i in range(1, 6):
 			d = self._get_next_batch_from_file(i)
 			data.update(d)
 		images, labels = self.preprocess(d)
@@ -60,17 +60,17 @@ class Data(object):
 		images = self.convert_images(images)
 		return images, labels
 
-	def preprocess(self, images):
+	def preprocess(self, data):
 		#TODO: Rotate your images and save the labels for each rotation. Search google to figure out how to rotate
 		#The output should be a tuple of your images and labels
 		images = []
 		labels = []
-		for image in images["data"]:
+		for k in data["data"]:
 			images.append(k)
 			images.append(np.rot90(k))
 			images.append(np.rot90(np.rot90(k)))
 			images.append(np.rot90(np.rot90(np.rot90(k))))
-		for label in images["labels"]:
+		for v in data["labels"]:
 			for i in range(4):
 				labels.append(v)
 		return images, labels
