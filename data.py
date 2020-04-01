@@ -31,8 +31,10 @@ class Data(object):
 		for i in range(1, 6):
 			d = self._get_next_batch_from_file(i)
 			data.update(d)
-		images, labels = self.preprocess(data)
+
+		images, labels = data[b'data'], data[b'labels']
 		images = self.convert_images(images)
+		images, labels = self.preprocess(images, labels)
 		return images, labels
 
 	def convert_images(self, raw_images):
@@ -60,18 +62,16 @@ class Data(object):
 		images = self.convert_images(images)
 		return images, labels
 
-	def preprocess(self, data):
+	def preprocess(self, im, lab):
 		#TODO: Rotate your images and save the labels for each rotation. Search google to figure out how to rotate
 		#The output should be a tuple of your images and labels
 		images = []
 		labels = []
-		for image in data[b'data']:
-			image = np.reshape(image, (32, 32, 3))
+		for image in im:
 			for i in range(4):
-				#print(np.rot90(image, k=i))
 				images.append(np.rot90(image, k=i))
 
-		for v in data[b'labels']:
+		for v in lab:
 			for i in range(4):
 				labels.append(v)
 		return np.array(images), np.array(labels)
@@ -96,4 +96,7 @@ if __name__ == "__main__":
 	DATA_DIR = "./data/cifar-10-batches-py/"
 	data_obj = Data(DATA_DIR, 32, 32, 5000)
 	x, y = data_obj.get_training_data()
-	print(x[:8], y[:8])
+	#print(x[:8], y[:8])
+	data_obj.print_image_to_screen(x[0])
+	data_obj.print_image_to_screen(x[1])
+
