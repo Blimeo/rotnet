@@ -65,16 +65,16 @@ class Data(object):
 		#The output should be a tuple of your images and labels
 		images = []
 		labels = []
-		print(data.keys())
-		for k in data[b'data']:
-			images.append(k)
-			images.append(np.rot90(k))
-			images.append(np.rot90(np.rot90(k)))
-			images.append(np.rot90(np.rot90(np.rot90(k))))
+		for image in data[b'data']:
+			image = np.reshape(image, (32, 32, 3))
+			for i in range(4):
+				#print(np.rot90(image, k=i))
+				images.append(np.rot90(image, k=i))
+
 		for v in data[b'labels']:
 			for i in range(4):
 				labels.append(v)
-		return images, labels
+		return np.array(images), np.array(labels)
 
 	@staticmethod
 	def print_image_to_screen(data):
@@ -96,5 +96,4 @@ if __name__ == "__main__":
 	DATA_DIR = "./data/cifar-10-batches-py/"
 	data_obj = Data(DATA_DIR, 32, 32, 5000)
 	x, y = data_obj.get_training_data()
-	print(x, y)
-	xr, yr = data_obj.preprocess(x, y)
+	print(x[:8], y[:8])
