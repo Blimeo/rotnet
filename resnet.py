@@ -8,22 +8,25 @@ from tf.keras.layers import MaxPooling2D
 class ResNet():
     def __init__(self, training=True):
         self.training = training
+        self.in_planes = 64
 
-    def add_residual_block(self, input, block_number, in_channels, out_channels):
+    def add_residual_block(self, input, block_number, in_channels, out_channels, downsample):
         block_number = str(block_number) #This was used for providing a unqiue name to each layer.
         skip = tf.identity(input)
 
-        if in_channels != out_channels:
-                
-            #TODO: perform 1x1 convolution to match output dimensions for skip connection
-            ...
+        if downsample:
+            skip = downsample(skip)
 
-        #TODO: Implement one residual block (Convolution, batch_norm, relu)
-        
+        x = Conv2D(filters=out_channels, name=block_number + "_1", kernel_size=(3, 3))(data)
+        x = BatchNormalization()(x)
+        x = tf.nn.relu()(x)
 
-        #TODO: Add the skip connection and ReLU the output
-        ...
-        return
+        x = Conv2D(filters=out_channels, name=block_number + "_2", kernel_size=(3, 3))(data)
+        x = BatchNormalization()(x)
+
+        x += skip
+
+        return x
 
     def forward(self, data):
         #TODO: 64 7x7 convolutions followed by batchnorm, relu, 3x3 maxpool with stride 2
@@ -34,12 +37,21 @@ class ResNet():
 
         #TODO: Add residual blocks of the appropriate size. See the diagram linked in the README for more details on the architecture.
         # Use the add_residual_block helper function
-        ...
+        data = Conv2D(filters=64, name='conv3')
 
         #TODO: perform global average pooling on each feature map to get 4 output channels
         ...
 
         return logits
+
+    def make_layer(self, out_channels, blocks, stride):
+        if stride != 1 or self.inplanes != out_channels:
+            downsample = Conv2D(self.in_planes, out_channels, stride)
+
+
+        for _ in range(blocks):
+            
+
 
     def add_convolution(self,
                         input,
@@ -48,5 +60,6 @@ class ResNet():
                         input_channels,
                         output_channels,
                         padding):
+        return tf.nn.conv2d(input, filter=filter_size, padding=padding, strides=None, filters=output_channels, name=name, input_shape=input_channels)
+        #first convolution - need a stride of 2
         #TODO: Implement a convolutional layer with the above specifications
-        pass
