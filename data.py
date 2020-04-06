@@ -79,7 +79,7 @@ class Data(object):
             for i in range(len(images)):
                 r_im = np.rot90(images[i], k=num_r).reshape(1, 32, 32, 3)
                 images_rotated.append(r_im)
-                labels_rotated.append(num_r * 90)
+                labels_rotated.append(num_r)
         return np.concatenate(images_rotated), np.array(labels_rotated)
 
         #for image in im:

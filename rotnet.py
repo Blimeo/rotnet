@@ -50,7 +50,7 @@ class RotNet(object):
     def build_base_graph(self):
         #TODO: Initialize your dataloader here using tf.data by calling "get_rot_data_iterator"
         self.placeholder_X = tf.compat.v1.placeholder(tf.float32, [None, 32, 32, 3])
-        self.placeholder_y = tf.compat.v1.placeholder(tf.int64, [None])
+        self.placeholder_y = tf.compat.v1.placeholder(tf.int64, [None, 4])
         dataset = tf.data.Dataset.from_tensor_slices((self.placeholder_X, self.placeholder_y))
         dataset =  dataset.shuffle(200000).batch(self.batch_size)
         self.iterator = tf.compat.v1.data.make_initializable_iterator(dataset)
@@ -62,9 +62,9 @@ class RotNet(object):
         self.loss = tf.reduce_mean(entropy)
 
         Y_pred = tf.nn.softmax(logits)
-        y_pred_cls = tf.argmax(Y_pred, axis=1)  
-        # y_cls = tf.argmax(yr, axis=1)
-        self.accuracy = tf.reduce_mean(tf.cast(tf.equal(y_pred_cls, data_y), tf.float32))
+        y_pred_cls = tf.argmax(Y_pred, axis=1)
+        y_cls = tf.argmax(data_y, axis=1)
+        self.accuracy = tf.reduce_mean(tf.cast(tf.equal(y_pred_cls, y_cls), tf.float32))
 
         tf.summary.scalar('loss', data=self.loss)
         tf.summary.scalar('accuracy', data=self.accuracy)
@@ -97,7 +97,7 @@ class RotNet(object):
         # #TODO: Split the data into a training and validation set: see sklearn train_test_split
         print(images.shape)
         X_train, X_val, y_train, y_val = train_test_split(images, labels)
-
+        y_train = tf.keras.utils.to_categorical(y_train)
         #TODO: Implement the training and validation loop and checkpoint your file at each epoch
         num_batches = int(200000/self.batch_size)
         print("[INFO] Starting Training...")
@@ -105,6 +105,7 @@ class RotNet(object):
             self.sess.run([self.iterator.initializer], feed_dict={self.placeholder_X: X_train, self.placeholder_y: y_train})
             for batch in range(num_batches):
                 self._update_learning_rate(epoch)
+                #_, loss, accuracy = self.sess.run([self.optimizer, self.loss, self.accuracy])
                 _, loss, accuracy, summary = self.sess.run([self.optimizer, self.loss, self.accuracy, self.summary_op])
 
                 #TODO: Make sure you are using the tensorflow add_summary method to add the data for each batch to Tensorboard

@@ -14,6 +14,7 @@ class ResNet():
         down = 1
         if in_channels != out_channels: 
             skip = tf.keras.layers.Conv2D(filters=out_channels, kernel_size=1, strides=2, padding='same')(skip)
+            skip = tf.keras.layers.BatchNormalization()(skip)
             down = 2
 
         x = tf.keras.layers.Conv2D(filters=out_channels, kernel_size=3, padding="same", strides=down)(input)
