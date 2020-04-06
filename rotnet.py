@@ -58,7 +58,7 @@ class RotNet(object):
         logits = self.model.forward(data_X)
         #TODO: Calculate the loss and accuracy from your output logits.
         # Add your accuracy metrics and loss to the tensorboard summary using tf.summary
-        entropy = tf.nn.sparse_softmax_cross_entropy_with_logits(labels=data_y, logits=logits)
+        entropy = tf.nn.softmax_cross_entropy_with_logits(labels=data_y, logits=logits)
         self.loss = tf.reduce_mean(entropy)
 
         Y_pred = tf.nn.softmax(logits)
