@@ -105,11 +105,11 @@ class RotNet(object):
             self.sess.run([self.iterator.initializer], feed_dict={self.placeholder_X: X_train, self.placeholder_y: y_train})
             for batch in range(num_batches):
                 self._update_learning_rate(epoch)
-                #_, loss, accuracy = self.sess.run([self.optimizer, self.loss, self.accuracy])
-                _, loss, accuracy, summary = self.sess.run([self.optimizer, self.loss, self.accuracy, self.summary_op])
+                _, loss, accuracy = self.sess.run([self.optimizer, self.loss, self.accuracy])
+                #_, loss, accuracy, summary = self.sess.run([self.optimizer, self.loss, self.accuracy, self.summary_op])
 
                 #TODO: Make sure you are using the tensorflow add_summary method to add the data for each batch to Tensorboard
-                self.train_writer.add_summary(summary, step=epoch*self.batch_size+batch)
+                #self.train_writer.add_summary(summary, step=epoch*self.batch_size+batch)
                 print("Epoch: {0}, Batch: {1} ==> Accuracy: {2}, Loss: {3}".format(epoch, batch, accuracy, loss))
             #TODO: Calculate validation accuracy and loss
             self.sess.run(self.iterator.initializer, feed_dict={placeholder_X: X_val, placeholder_y: y_val})
