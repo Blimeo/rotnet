@@ -91,10 +91,11 @@ class RotNet(object):
     def train(self):
         #TODO: Initialize your graph variables
         self.sess.run(self.iterator.initializer, tf.global_variables_initializer())
+        # i've put question marks in the placeholders  below because idk the dimensions of the label set...someone please help
         self.train_inputs = tf.placeholder(tf.float32, [self.batch_size, self.height, self.width, 3], name='train_inputs')
-        self.train_labels = tf.placeholder(tf.float32, [self.batch_size, self.label_dim], name='train_labels')
-        self.test_inputs = tf.placeholder(tf.float32, [len(self.test_x), self.img_size, self.img_size, self.c_dim], name='test_inputs')
-        self.test_labels = tf.placeholder(tf.float32, [len(self.test_y), self.label_dim], name='test_labels')
+        self.train_labels = tf.placeholder(tf.float32, ???, name='train_labels')
+        self.test_inputs = tf.placeholder(tf.float32, [len(self.test_x), self.height, self.width, 3], name='test_inputs')
+        self.test_labels = tf.placeholder(tf.float32, [len(self.test_y), ???], name='test_labels')
         #TODO: Implement and call the get_training_data function to get the data from disk
         #NOTE: Depending on how you implement your iterator, you may not need to load the data here.
         images, labels = self.data_obj.get_training_data()
