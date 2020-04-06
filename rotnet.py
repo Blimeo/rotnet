@@ -73,7 +73,7 @@ class RotNet(object):
 
     def build_train_graph(self):
         #TODO: Create an optimizer that minimizes the loss function that you defined in the above function
-        optimizer = tf.compat.v1.train.GradientDescentOptimizer(learning_rate=self.learning_rate)
+        optimizer = tf.compat.v1.train.AdamOptimizer()
         self.optimizer = optimizer.minimize(self.loss)
 
         #This will restore a model @ the latest epoch if you have already started training
@@ -97,10 +97,10 @@ class RotNet(object):
         # #TODO: Split the data into a training and validation set: see sklearn train_test_split
         print(images.shape)
         X_train, X_val, y_train, y_val = train_test_split(images, labels)
-        y_train = tf.keras.utils.to_categorical(y_train, num_classes=10)
-        y_val = tf.keras.utils.to_categorical(y_val, num_classes=10)
+        y_train = tf.keras.utils.to_categorical(y_train)
+        y_val = tf.keras.utils.to_categorical(y_val)
 
-        self.saver = tf.train.Saver()
+        self.saver = tf.compat.v1.train.Saver()
 
         #TODO: Implement the training and validation loop and checkpoint your file at each epoch
         print("[INFO] Starting Training...")
@@ -120,7 +120,7 @@ class RotNet(object):
             self.sess.run(self.iterator.initializer, feed_dict={placeholder_X: X_val, placeholder_y: y_val})
             num_batches = int(len(X_val)/self.batch_size)
             for batch in range(num_batches):
-                _, loss, accuracy = self.sess.run([self.loss, self.accuracy])
+                loss, accuracy = self.sess.run([self.loss, self.accuracy])
                 print("VALIDATION Epoch: {0}, Batch: {1} ==> Accuracy: {2}, Loss: {3}".format(epoch, batch, accuracy, loss))
             #TODO: Use the save_checkpoint method below to save your model weights to disk.
             self.save_checkpoint(epoch*num_batches+batch, epoch)
@@ -135,14 +135,14 @@ class RotNet(object):
         images, labels = self.data_obj.preprocess(images)
         X_test = images
         y_test = labels
-        y_test = tf.keras.utils.to_categorical(y_test, num_classes=10)
+        y_test = tf.keras.utils.to_categorical(y_test)
         _, accuracy = self.sess.run([self.iterator.initializer, self.accuracy], feed_dict={self.placeholder_X: X_test, self.placeholder_y: y_test})
         print("TEST Accuracy: {0}".format(accuracy))
 
 
     def predict(self, image_path):
         #TODO: Once you have trained your model, you should be able to run inference on a single image by reloading the weights
-        self.saver = tf.train.import_meta_graph('model.meta')
+        self.saver = tf.compat.v1.train.import_meta_graph('model.meta')
         self.restore_from_checkpoint()
 
 
