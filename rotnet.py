@@ -1,6 +1,7 @@
 import yaml
 import os
 import sys
+import cv2
 from sklearn.model_selection import train_test_split
 import tensorflow as tf
 from tensorflow.python.client import device_lib
@@ -144,6 +145,11 @@ class RotNet(object):
         #TODO: Once you have trained your model, you should be able to run inference on a single image by reloading the weights
         self.saver = tf.compat.v1.train.import_meta_graph('model.meta')
         self.restore_from_checkpoint()
+        img = cv2.imread(image_path)
+        img = np.expand_dims(img, axis=0)
+        logits = self.model.forward(img)
+        pred_class = tf.argmax(tf.nn.softmax(logits), axis=1)
+        return self.classes[pred_class]
 
 
 
