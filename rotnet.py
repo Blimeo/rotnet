@@ -97,7 +97,11 @@ class RotNet(object):
         # #TODO: Split the data into a training and validation set: see sklearn train_test_split
         print(images.shape)
         X_train, X_val, y_train, y_val = train_test_split(images, labels)
-        y_train = tf.keras.utils.to_categorical(y_train)
+        y_train = tf.keras.utils.to_categorical(y_train, num_classes=10)
+        y_val = tf.keras.utils.to_categorical(y_val, num_classes=10)
+
+        self.saver = tf.train.Saver()
+
         #TODO: Implement the training and validation loop and checkpoint your file at each epoch
         print("[INFO] Starting Training...")
         for epoch in range(self.start_epoch, self.num_epochs):
@@ -110,39 +114,51 @@ class RotNet(object):
 
                 #TODO: Make sure you are using the tensorflow add_summary method to add the data for each batch to Tensorboard
                 #self.train_writer.add_summary(summary, step=epoch*self.batch_size+batch)
-                print("Epoch: {0}, Batch: {1} ==> Accuracy: {2}, Loss: {3}".format(epoch, batch, accuracy, loss))
+                print("TRAINING Epoch: {0}, Batch: {1} ==> Accuracy: {2}, Loss: {3}".format(epoch, batch, accuracy, loss))
+
             #TODO: Calculate validation accuracy and loss
             self.sess.run(self.iterator.initializer, feed_dict={placeholder_X: X_val, placeholder_y: y_val})
             num_batches = int(len(X_val)/self.batch_size)
             for batch in range(num_batches):
-                self.accuracy = sess.run([accuracy])
+                _, loss, accuracy = self.sess.run([self.loss, self.accuracy])
+                print("VALIDATION Epoch: {0}, Batch: {1} ==> Accuracy: {2}, Loss: {3}".format(epoch, batch, accuracy, loss))
             #TODO: Use the save_checkpoint method below to save your model weights to disk.
-            
+            self.save_checkpoint(epoch*num_batches+batch, epoch)
             
 
         #TODO: Evaluate your data on the test set after training
-        feed_dict = {
-            self.test_inputs : self.X_test,
-            self.test_labels : self.y_test
-        }
-        _, accuracy = self.sess.run([self.iterator.initializer, self.accuracy], feed_dict=feed_dict)
+        # feed_dict = {
+        #     self.test_inputs : self.X_test,
+        #     self.test_labels : self.y_test
+        # }
+        images, labels = self.data_obj.get_test_data()
+        images, labels = self.data_obj.preprocess(images)
+        X_test = images
+        y_test = labels
+        y_test = tf.keras.utils.to_categorical(y_test, num_classes=10)
+        _, accuracy = self.sess.run([self.iterator.initializer, self.accuracy], feed_dict={self.placeholder_X: X_test, self.placeholder_y: y_test})
+        print("TEST Accuracy: {0}".format(accuracy))
 
 
     def predict(self, image_path):
         #TODO: Once you have trained your model, you should be able to run inference on a single image by reloading the weights
-        ...
-        return
+        self.saver = tf.train.import_meta_graph('model.meta')
+        self.restore_from_checkpoint()
+
+
 
     def restore_from_checkpoint(self):
         #TODO: restore the weights of the model from a given checkpoint
         #this function should return the latest epoch from training (you can get this from the name of the checkpoint file)
-        ...
-        return
+        checkpoint = tf.compat.v1.train.latest_checkpoint('./')
+        self.saver.restore(self.sess, checkpoint)
 
     def save_checkpoint(self, global_step, epoch):
         #TODO: This function should save the model weights. If we are on the first epoch it should also save the graph.
-        ...
-        return
+        if epoch == 0:
+            self.saver.save(self.sess, 'model', global_step=global_step)
+        else:
+            self.saver.save(self.sess, 'model', global_step=global_step, write_meta_graph=False)
 
     def _update_learning_rate(self, epoch):
         #In the paper the learning rate is updated after certain epochs to slow down learning.
