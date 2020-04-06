@@ -19,9 +19,10 @@ class Data(object):
         # You should be prefetching, shuffling, and batching your data. See the tf.data documentation is you are confused on this part.
 		# There are multiple ways to implement iterators. Feel free to do it in whichever way makes the most sense.
         dataset = tf.data.Dataset.from_tensor_splices((images, labels))
-        dataset.shuffle.batch(self.batch_size)
-        iterator = dataset.make_one_shot_iterator()
-        return iterator
+        dataset = dataset.shuffle(30)
+        dataset = dataset.batch(batch_size)
+        dataset = dataset.prefetch(30)
+        return tf.data.make_initializable_iterator(dataset)
 
     def get_training_data(self):
         print("[INFO] Getting Training Data")
