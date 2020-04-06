@@ -99,9 +99,9 @@ class RotNet(object):
         X_train, X_val, y_train, y_val = train_test_split(images, labels)
         y_train = tf.keras.utils.to_categorical(y_train)
         #TODO: Implement the training and validation loop and checkpoint your file at each epoch
-        num_batches = int(200000/self.batch_size)
         print("[INFO] Starting Training...")
         for epoch in range(self.start_epoch, self.num_epochs):
+            num_batches = int(len(X_train)/self.batch_size)
             self.sess.run([self.iterator.initializer], feed_dict={self.placeholder_X: X_train, self.placeholder_y: y_train})
             for batch in range(num_batches):
                 self._update_learning_rate(epoch)
@@ -113,6 +113,7 @@ class RotNet(object):
                 print("Epoch: {0}, Batch: {1} ==> Accuracy: {2}, Loss: {3}".format(epoch, batch, accuracy, loss))
             #TODO: Calculate validation accuracy and loss
             self.sess.run(self.iterator.initializer, feed_dict={placeholder_X: X_val, placeholder_y: y_val})
+            num_batches = int(len(X_val)/self.batch_size)
             for batch in range(num_batches):
                 self.accuracy = sess.run([accuracy])
             #TODO: Use the save_checkpoint method below to save your model weights to disk.

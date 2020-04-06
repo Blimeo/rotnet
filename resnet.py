@@ -4,7 +4,6 @@ import sys
 class ResNet():
     def __init__(self, training=True):
         self.training = training
-        self.in_planes = 64
 
     def add_residual_block(self, input, block_number, in_channels, out_channels):
         block_number = str(block_number) #This was used for providing a unqiue name to each layer.
@@ -30,7 +29,7 @@ class ResNet():
 
     def forward(self, data):
         #TODO: 64 7x7 convolutions followed by batchnorm, relu, 3x3 maxpool with stride 2
-        data = tf.keras.layers.Conv2D(filters=64, name='initial', kernel_size=7, strides=2, input_shape=(32, 32, 3,), padding="same")(data)
+        data = tf.keras.layers.Conv2D(filters=64, kernel_size=7, strides=2, input_shape=(32, 32, 3,), padding="same")(data)
         data = tf.keras.layers.BatchNormalization()(data)
         data = tf.keras.layers.Activation('relu')(data)
         data = tf.keras.layers.MaxPooling2D(pool_size=(3, 3), padding='same', strides=2)(data)
@@ -52,15 +51,3 @@ class ResNet():
         data = tf.keras.layers.GlobalAveragePooling2D()(data)
         data = tf.keras.layers.Dense(4)(data)
         return data
-
-
-    def add_convolution(self,
-                        input,
-                        name,
-                        filter_size,
-                        input_channels,
-                        output_channels,
-                        padding):
-        return tf.nn.conv2d(input, filter=filter_size, padding=padding, strides=None, filters=output_channels, name=name, input_shape=input_channels)
-        #first convolution - need a stride of 2
-        #TODO: Implement a convolutional layer with the above specifications
