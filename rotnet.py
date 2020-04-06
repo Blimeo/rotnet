@@ -52,7 +52,9 @@ class RotNet(object):
 
     def build_base_graph(self):
         #TODO: Initialize your dataloader here using tf.data by calling "get_rot_data_iterator"
-        ...
+        x, y = data_obj.get_training_data()
+        xr, yr = data_obj.preprocess(x)
+        self.iterator = data_obj.get_rot_data_iterator(xr, yr, self.batch_size)
         data_X, data_y = self.iterator.get_next()
 
         #TODO: Construct the Resnet in resnet.py
