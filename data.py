@@ -18,11 +18,11 @@ class Data(object):
         # TODO: Initialize your iterator with these images and labels
         # You should be prefetching, shuffling, and batching your data. See the tf.data documentation is you are confused on this part.
 		# There are multiple ways to implement iterators. Feel free to do it in whichever way makes the most sense.
-        dataset = tf.data.Dataset.from_tensor_splices((images, labels))
-        dataset = dataset.shuffle(30)
+        dataset = tf.data.Dataset.from_tensor_slices((images, labels))
+        dataset = dataset.shuffle(200000)
         dataset = dataset.batch(batch_size)
-        dataset = dataset.prefetch(30)
-        return tf.data.make_initializable_iterator(dataset)
+        dataset = dataset.prefetch(25)
+        return tf.compat.v1.data.make_initializable_iterator(dataset)
 
     def get_training_data(self):
         print("[INFO] Getting Training Data")
@@ -66,8 +66,8 @@ class Data(object):
     def get_test_data(self):
         # TODO: Write a function to get the test set from disk.
         d = self._unpickle_data(self.data_dir + 'test_batch')
-        images = self.convert_images(images)
-        return images, labels
+        images = self.convert_images(d[b'data'])
+        return images, d[b'labels']
 
     def preprocess(self, images):
         #TODO: Rotate your images and save the labels for each rotation. Search google to figure out how to rotate
