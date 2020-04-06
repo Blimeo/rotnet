@@ -49,33 +49,26 @@ class RotNet(object):
 
     def build_base_graph(self):
         #TODO: Initialize your dataloader here using tf.data by calling "get_rot_data_iterator"
-        x, y = self.data_obj.get_training_data()
-        self.X_train, self.y_train = self.data_obj.preprocess(x)
-        self.iterator = self.data_obj.get_rot_data_iterator(self.X_train, self.y_train, self.batch_size)
-
-        self.X_test, self.y_test = self.data_obj.get_test_data()
-        self.X_test, self.y_test = self.data_obj.preprocess(self.X_test) 
-        #TODO: Construct the Resnet in resnet.py
-
-        self.train_inputs = tf.compat.v1.placeholder(tf.float32, [self.batch_size, self.height, self.width, 3], name='train_inputs')
-        self.train_labels = tf.compat.v1.placeholder(tf.int64, [self.batch_size], name='train_labels')
-
-        self.test_inputs = tf.compat.v1.placeholder(tf.float32, [len(self.X_test), self.height, self.width, 3], name='test_inputs')
-        self.test_labels = tf.compat.v1.placeholder(tf.int64, [len(self.y_test)], name='test_labels')
-
-        logits = self.model.forward(self.train_inputs)
+        self.placeholder_X = tf.compat.v1.placeholder(tf.float32, [None, 32, 32, 3])
+        self.placeholder_y = tf.compat.v1.placeholder(tf.int64, [None])
+        dataset = tf.data.Dataset.from_tensor_slices((self.placeholder_X, self.placeholder_y))
+        dataset =  dataset.shuffle(200000).batch(self.batch_size)
+        self.iterator = tf.compat.v1.data.make_initializable_iterator(dataset)
+        data_X, data_y = self.iterator.get_next()
+        logits = self.model.forward(data_X)
         #TODO: Calculate the loss and accuracy from your output logits.
         # Add your accuracy metrics and loss to the tensorboard summary using tf.summary
-        entropy = tf.nn.sparse_softmax_cross_entropy_with_logits(labels=self.train_labels, logits=logits)
+        entropy = tf.nn.sparse_softmax_cross_entropy_with_logits(labels=data_y, logits=logits)
         self.loss = tf.reduce_mean(entropy)
 
         Y_pred = tf.nn.softmax(logits)
         y_pred_cls = tf.argmax(Y_pred, axis=1)  
         # y_cls = tf.argmax(yr, axis=1)
-        self.accuracy = tf.reduce_mean(tf.cast(tf.equal(y_pred_cls, self.train_labels), tf.float32))
+        self.accuracy = tf.reduce_mean(tf.cast(tf.equal(y_pred_cls, data_y), tf.float32))
 
         tf.summary.scalar('loss', data=self.loss)
         tf.summary.scalar('accuracy', data=self.accuracy)
+        self.summary_op = tf.compat.v1.summary.merge_all()
         #END OF FUNCTION
 
     def build_train_graph(self):
@@ -92,41 +85,35 @@ class RotNet(object):
             self.start_epoch = 0
 
         #Creates a writer for Tensorboard
-        #   self.train_writer = tf.compat.v1.summary.FileWriter("./logs/train/" + str(self.model_number), self.sess.graph)
+        self.train_writer = tf.compat.v1.summary.FileWriter("./logs/train/" + str(self.model_number), self.sess.graph)
 
     def train(self):
         #TODO: Initialize your graph variables
-        self.sess.run([self.iterator.initializer, tf.compat.v1.global_variables_initializer()])
+        self.sess.run([tf.compat.v1.global_variables_initializer()])
         #TODO: Implement and call the get_training_data function to get the data from disk
         #NOTE: Depending on how you implement your iterator, you may not need to load the data here.
-        # images, labels = self.data_obj.get_training_data()
-        # images, labels = self.data_obj.preprocess(images)
+        images, labels = self.data_obj.get_training_data()
+        images, labels = self.data_obj.preprocess(images)
         # #TODO: Split the data into a training and validation set: see sklearn train_test_split
-        # print(images.shape)
-        # (self.X_train, self.y_train), (X_val, y_val) = train_test_split(images, labels)
+        print(images.shape)
+        X_train, X_val, y_train, y_val = train_test_split(images, labels)
 
         #TODO: Implement the training and validation loop and checkpoint your file at each epoch
+        num_batches = int(200000/self.batch_size)
         print("[INFO] Starting Training...")
         for epoch in range(self.start_epoch, self.num_epochs):
-            batch = 0
-            try:
-                while True:
-                    self._update_learning_rate(epoch)
-                    X_batch, y_batch = self.iterator.get_next()
-                    feed_dict = {self.train_inputs : X_batch,
-                             self.train_labels : y_batch}
-                    _, loss, accuracy, summary = self.sess.run([self.optimizer, self.loss, self.accuracy, self.summary_op],
-                                                        feed_dict=feed_dict)
+            self.sess.run([self.iterator.initializer], feed_dict={self.placeholder_X: X_train, self.placeholder_y: y_train})
+            for batch in range(num_batches):
+                self._update_learning_rate(epoch)
+                _, loss, accuracy, summary = self.sess.run([self.optimizer, self.loss, self.accuracy, self.summary_op])
 
-                    #TODO: Make sure you are using the tensorflow add_summary method to add the data for each batch to Tensorboard
-                    self.train_writer.add_summary(summary, step=epoch*self.batch_size+batch)
-                    print("Epoch: {0}, Batch: {1} ==> Accuracy: {2}, Loss: {3}".format(epoch, batch, accuracy, loss))
-                    batch += 1
-            except tf.errors.OutOfRangeError:
-                pass
-
+                #TODO: Make sure you are using the tensorflow add_summary method to add the data for each batch to Tensorboard
+                self.train_writer.add_summary(summary, step=epoch*self.batch_size+batch)
+                print("Epoch: {0}, Batch: {1} ==> Accuracy: {2}, Loss: {3}".format(epoch, batch, accuracy, loss))
             #TODO: Calculate validation accuracy and loss
-
+            self.sess.run(self.iterator.initializer, feed_dict={placeholder_X: X_val, placeholder_y: y_val})
+            for batch in range(num_batches):
+                self.accuracy = sess.run([accuracy])
             #TODO: Use the save_checkpoint method below to save your model weights to disk.
             
             
